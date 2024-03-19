@@ -1,6 +1,7 @@
 package main
 
 import (
+	router "fleet/api/routers"
 	"fleet/database"
 	"fmt"
 
@@ -17,6 +18,11 @@ func main() {
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
-	app.Listen(":3000")
 
+	router.SetupRoutes(app)
+
+	err = app.Listen(":8080")
+	if err != nil {
+		fmt.Printf("Error starting server: %s\n", err)
+	}
 }
