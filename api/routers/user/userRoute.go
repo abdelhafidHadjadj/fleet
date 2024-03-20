@@ -8,10 +8,9 @@ import (
 
 func SetupUserRoute(router fiber.Router) {
 	user := router.Group("/user")
-	user.Get("/getusers", userHandler.GetUsers)
-	user.Get("/:userId", userHandler.GetUser)
-	/*
-	   user.Put("/:userId", userHandler.UpdateUser)
-	   user.Delete("/:userId", userHandler.DeleteUser)
-	*/
+	user.Get("/getall", userHandler.GetUsers)
+	user.Get("/get/:userId", userHandler.GetUserByID)
+	user.Post("/add", userHandler.CreateUser)
+	user.Patch("/update/:userId", userHandler.UpdateUser)
+	user.Delete("/delete/:userId", userHandler.DeleteUser)
 }

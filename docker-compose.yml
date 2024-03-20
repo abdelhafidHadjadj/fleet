@@ -14,8 +14,11 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=PasswordPassword123
       - MYSQL_DATABASE=fleet
+    volumes:
+      - db-data:/var/lib/mysql
     networks:
       - fleet-net
+
   
   go-app:
     build: ./
@@ -36,4 +39,5 @@ services:
       - fleet-net
       
 
-      
+volumes:
+  db-data:
