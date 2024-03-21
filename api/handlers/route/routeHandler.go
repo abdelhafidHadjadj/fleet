@@ -148,7 +148,6 @@ func DeleteRoute(c *fiber.Ctx) error {
 	if err != nil {
 		log.Fatal(err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
-
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
