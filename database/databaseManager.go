@@ -24,7 +24,7 @@ func CreateTables(db *sql.DB) error {
 			model VARCHAR (20) NOT NULL,
 			type ENUM('truck', 'van', 'car', 'drone') NOT NULL,
 			type_charge ENUM('electric', 'fuel') NOT NULL,
-			currrent_charge FLOAT,
+			current_charge FLOAT,
 			charge_capacity FLOAT,
 			current_distance FLOAT,
 			current_position VARCHAR(255),
@@ -32,7 +32,7 @@ func CreateTables(db *sql.DB) error {
 			connection_key VARCHAR (20),
 			created_at DATETIME,
 			created_by INT,
-			FOREIGN KEY (created_by) REFERENCES User (id)
+			FOREIGN KEY (created_by) REFERENCES User(id)
 			
 		)`,
 		`CREATE TABLE IF NOT EXISTS Driver(

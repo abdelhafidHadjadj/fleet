@@ -1,8 +1,6 @@
 version: '3.8'
 networks:
   fleet-net:
-    #name: fleet-net
-    #driver: bridge
 services:
   db:
     image: mysql
@@ -37,6 +35,24 @@ services:
     restart: unless-stopped
     networks:
       - fleet-net
+  
+  mqtt-server:
+    build: ../mqtt-broker
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+    networks:
+      - fleet-net
+
+  drone:
+    build: ../drone-soft
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+    networks:
+      - fleet-net
+    
+
       
 
 volumes:

@@ -6,6 +6,8 @@ import (
 	"log"
 	"strings"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -64,6 +66,7 @@ func CreateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&newUser); err != nil {
 		return err
 	}
+	hashedPassword, _ := HashPassword(newUser.Password)
 	db := database.ConnectionDB()
 	stmt, err := db.Prepare("INSERT INTO User (firstname, lastname, email, password, phone, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
@@ -71,13 +74,12 @@ func CreateUser(c *fiber.Ctx) error {
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(newUser.Firstname, newUser.Lastname, newUser.Email, newUser.Password, newUser.Phone, newUser.Role, newUser.Status, newUser.CreatedAt)
+	_, err = stmt.Exec(newUser.Firstname, newUser.Lastname, newUser.Email, hashedPassword, newUser.Phone, newUser.Role, newUser.Status, newUser.CreatedAt)
 	if err != nil {
 		log.Fatal(err)
 		return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not create user"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "User created successfully"})
-
 }
 
 func UpdateUser(c *fiber.Ctx) error {
@@ -163,4 +165,16 @@ func DeleteUser(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "failed", "message": "User not found"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "User Deleted successfully"})
+}
+
+/************************* Some Feature ******************************/
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

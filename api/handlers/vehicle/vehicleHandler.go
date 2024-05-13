@@ -11,7 +11,7 @@ import (
 
 func GetVehicles(c *fiber.Ctx) error {
 	db := database.ConnectionDB()
-	rows, err := db.Query("SELECT * FROM Vehicle")
+	rows, err := db.Query("SELECT Vehicle.*, User.firstname, User.lastname FROM Vehicle INNER JOIN User ON Vehicle.created_by = User.id")
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -21,8 +21,9 @@ func GetVehicles(c *fiber.Ctx) error {
 	var vehicles []model.Vehicle
 	for rows.Next() {
 		var vehicle model.Vehicle
+		var user model.User
 		if err := rows.Scan(&vehicle.ID, &vehicle.Register_number, &vehicle.Name, &vehicle.Model,
-			&vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity, &vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy); err != nil {
+			&vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity, &vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy, &user.Firstname, &user.Lastname); err != nil {
 			return err
 		}
 		vehicles = append(vehicles, vehicle)

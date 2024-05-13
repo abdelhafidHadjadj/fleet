@@ -1,0 +1,28 @@
+# Fleet Management System
+
+## Dockerization
+- [x] Database
+- [x] Go app
+- [x] MQTT Broker
+- [ ] Svelte app
+
+## GO (Restfull Api)
+- [x] User handler
+- [x] User router
+- [x] Vehicle handler
+- [x] Vehicle router
+- [x] Route handler
+- [x] Route router
+- [ ] Route-logs handler
+- [ ] Route-logs router
+- [ ] Store data coming from broker
+## GO (WebSockets)
+- [ ] Broadcast data to client
+
+
+## GO (Middleware)
+- [ ] Logging
+- [ ] Sign Up
+- [ ] Authentication (JWT)
+
+## GO (Streaming)

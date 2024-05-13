@@ -7,7 +7,7 @@ type Vehicle struct {
 	Model            string `json:"model"`
 	Type             string `json:"type"`
 	Type_charge      string `json:"type_charge"`
-	Currrent_charge  string `json:"currrent_charge"`
+	Current_charge   string `json:"currrent_charge"`
 	Charge_capacity  string `json:"charge_capacity"`
 	Current_distance string `json:"current_distance"`
 	Current_position string `json:"current_position"`

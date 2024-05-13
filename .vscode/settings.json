@@ -13,6 +13,20 @@
             "database": "fleet",
             "username": "root",
             "password": "PasswordPassword123"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3310,
+            "driver": "MySQL",
+            "name": "fleet",
+            "database": "fleet",
+            "username": "root",
+            "password": "PasswordPassword123"
         }
     ]
 }
