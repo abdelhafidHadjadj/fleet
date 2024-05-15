@@ -34,7 +34,7 @@ func CreateTables(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
-			FOREIGN KEY (created_by) REFERENCES User(id)
+			FOREIGN KEY (created_by) REFERENCES USER(id)
 		)`,
 		`CREATE TABLE IF NOT EXISTS DRIVER(
 			id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,10 +50,10 @@ func CreateTables(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
-			FOREIGN KEY (created_by) REFERENCES User (id)
+			FOREIGN KEY (created_by) REFERENCES USER(id)
 		)
 		`,
-		`CREATE TABLE IF NOT EXISTS Route(
+		`CREATE TABLE IF NOT EXISTS ROUTE(
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			status ENUM ('progress', 'canceled', 'completed') NOT NULL,
 			departure_date DATE NOT NULL,
@@ -63,17 +63,17 @@ func CreateTables(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
-			FOREIGN KEY (driver_id) REFERENCES Driver (id),
-			FOREIGN KEY (vehicle_id) REFERENCES Vehicle (id),
-			FOREIGN KEY (created_by) REFERENCES User (id)
+			FOREIGN KEY (driver_id) REFERENCES DRIVER (id),
+			FOREIGN KEY (vehicle_id) REFERENCES VEHICLE (id),
+			FOREIGN KEY (created_by) REFERENCES USER (id)
 			)`,
-		`CREATE TABLE IF NOT EXISTS Route_logs(
+		`CREATE TABLE IF NOT EXISTS ROUTE_LOGS(
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			vehicle_id INT,
 			lat FLOAT NOT NULL,
 			lng FLOAT NOT NULL,
 			datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (vehicle_id) REFERENCES Vehicle (id)
+			FOREIGN KEY (vehicle_id) REFERENCES VEHICLE (id)
 		)`,
 	}
 	for _, query := range queries {

@@ -5,10 +5,10 @@ import (
 	"fleet/database"
 	"fleet/mqtt"
 	"fmt"
-	//"log"
-	//"net/http"
+	"log"
+	"net/http"
 	"github.com/gofiber/fiber/v2"
-	//socketio "github.com/googollee/go-socket.io"
+	socketio "github.com/googollee/go-socket.io"
 )
 
 func main() {

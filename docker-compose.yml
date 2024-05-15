@@ -31,28 +31,28 @@ services:
       - DB_PASSWORD=PasswordPassword123
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_NAME=fleet
+      - DB_NAME=fleetDB
     restart: unless-stopped
     networks:
       - fleet-net
   
-#  mqtt-server:
-#    build: ../mqtt-server
-#    ports:
-#      - "1883:1883"
-#    restart: unless-stopped
-#    networks:
-#      - fleet-net
-#
-#  drone:
-#    build: ../drone-software
-#    ports:
-#      - "3002:3002"
-#    restart: unless-stopped
-#    networks:
-#      - fleet-net
-#    
-#
+  mqtt-server:
+    build: ../mqtt-server
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+    networks:
+      - fleet-net
+
+  drone:
+    build: ../drone-software
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+    networks:
+      - fleet-net
+    
+
       
 
 volumes:
