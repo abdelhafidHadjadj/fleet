@@ -6,22 +6,23 @@ import (
 
 func CreateTables(db *sql.DB) error {
 	queries := []string{
-		`CREATE TABLE IF NOT EXISTS User (
+		`CREATE TABLE IF NOT EXISTS USER (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			firstname VARCHAR (20) NOT NULL,
 			lastname VARCHAR (20) NOT NULL,
-			phone INT NOT NULL,
+			phone VARCHAR(10),
 			email VARCHAR (20) NOT NULL,
 			password VARCHAR (255) NOT NULL,
 			role ENUM ('admin', 'operator') NOT NULL,
 			status ENUM ('work', 'leave') DEFAULT 'work',
-			created_at DATETIME
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 			)`,
-		`CREATE TABLE IF NOT EXISTS Vehicle(
+		`CREATE TABLE IF NOT EXISTS VEHICLE(
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			register_number VARCHAR (10) NOT NULL,
-			name VARCHAR (20) NOT NULL,
-			model VARCHAR (20) NOT NULL,
+			name VARCHAR (30) NOT NULL,
+			model VARCHAR (30) NOT NULL,
 			type ENUM('truck', 'van', 'car', 'drone') NOT NULL,
 			type_charge ENUM('electric', 'fuel') NOT NULL,
 			current_charge FLOAT,
@@ -30,22 +31,24 @@ func CreateTables(db *sql.DB) error {
 			current_position VARCHAR(255),
 			status ENUM('available', 'use', 'maintenance') DEFAULT 'available',
 			connection_key VARCHAR (20),
-			created_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
 			FOREIGN KEY (created_by) REFERENCES User(id)
-			
 		)`,
-		`CREATE TABLE IF NOT EXISTS Driver(
+		`CREATE TABLE IF NOT EXISTS DRIVER(
 			id INT AUTO_INCREMENT PRIMARY KEY,
+			register_number VARCHAR (10),
 			firstname VARCHAR (20) NOT NULL,
 			lastname VARCHAR (20) NOT NULL,
 			birthday DATE,
-			phone INT,
+			phone VARCHAR(10),
 			email VARCHAR (20) NOT NULL,
 			password VARCHAR (255) NOT NULL,
 			class ENUM('a','b', 'c', 'd'),
 			status ENUM('work', 'leave') DEFAULT 'work',
-			created_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
 			FOREIGN KEY (created_by) REFERENCES User (id)
 		)
@@ -57,7 +60,8 @@ func CreateTables(db *sql.DB) error {
 			arrival_date DATE NOT NULL,
 			driver_id INT,
 			vehicle_id INT,
-			created_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			created_by INT,
 			FOREIGN KEY (driver_id) REFERENCES Driver (id),
 			FOREIGN KEY (vehicle_id) REFERENCES Vehicle (id),
@@ -68,7 +72,7 @@ func CreateTables(db *sql.DB) error {
 			vehicle_id INT,
 			lat FLOAT NOT NULL,
 			lng FLOAT NOT NULL,
-			datetime DATETIME,
+			datetime DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (vehicle_id) REFERENCES Vehicle (id)
 		)`,
 	}

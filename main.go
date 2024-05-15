@@ -5,10 +5,10 @@ import (
 	"fleet/database"
 	"fleet/mqtt"
 	"fmt"
-	"log"
-	"net/http"
+	//"log"
+	//"net/http"
 	"github.com/gofiber/fiber/v2"
-	socketio "github.com/googollee/go-socket.io"
+	//socketio "github.com/googollee/go-socket.io"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	}
 	router.SetupRoutes(app)
 	app.Listen(":8080")
-	/*go func() {
+	go func() {
 		if err != nil {
 			log.Fatalf("Error starting HTTP server: %s", err)
 		}
@@ -42,5 +42,5 @@ func main() {
 		})
 	})
 	http.Handle("/socket.io/", socketServer)
-*/
+
 }
