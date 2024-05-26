@@ -41,7 +41,7 @@ func CreateTables(db *sql.DB) error {
 			register_number VARCHAR (10),
 			firstname VARCHAR (20) NOT NULL,
 			lastname VARCHAR (20) NOT NULL,
-			birthday DATE,
+			date_of_birth DATE,
 			phone VARCHAR(10),
 			email VARCHAR (20) NOT NULL,
 			password VARCHAR (255) NOT NULL,
