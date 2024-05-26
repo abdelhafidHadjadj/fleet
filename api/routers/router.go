@@ -1,6 +1,7 @@
 package router
 
 import (
+	driverRouter "fleet/api/routers/driver"
 	routeRouter "fleet/api/routers/route"
 	userRoute "fleet/api/routers/user"
 	vehicleRouter "fleet/api/routers/vehicle"
@@ -13,4 +14,5 @@ func SetupRoutes(app *fiber.App) {
 	userRoute.SetupUserRoute(api)
 	vehicleRouter.SetupVehicleRoute(api)
 	routeRouter.SetupRouteRouter(api)
+	driverRouter.SetupDriverRoute(api)
 }

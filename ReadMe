@@ -9,15 +9,21 @@
 ## GO (Restfull Api)
 - [x] User handler
 - [x] User router
+- [ ] Driver handler
+- [ ] Driver router
 - [x] Vehicle handler
 - [x] Vehicle router
 - [x] Route handler
 - [x] Route router
 - [ ] Route-logs handler
 - [ ] Route-logs router
-- [ ] Store data coming from broker
+- [x] Store data coming from broker
 ## GO (WebSockets)
 - [ ] Broadcast data to client
+
+## NGINX SERVER
+- [ ] Configuration server
+- [ ] Reverse proxy
 
 
 ## GO (Middleware)
@@ -25,4 +31,4 @@
 - [ ] Sign Up
 - [ ] Authentication (JWT)
 
-## GO (Streaming)
+## GO (Streaming) [X] 
