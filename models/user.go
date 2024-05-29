@@ -6,7 +6,7 @@ type User struct {
 	Lastname  string `json:"lastname"`
 	Email     string `json:"email"`
 	Password  string `json:"password"`
-	Phone     int    `json:"phone"`
+	Phone     string `json:"phone"`
 	Role      string `json:"role"`
 	Status    string `json:"status"`
 	CreatedAt string `json:"created_at"`

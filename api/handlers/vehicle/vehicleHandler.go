@@ -11,7 +11,11 @@ import (
 
 func GetVehicles(c *fiber.Ctx) error {
 	db := database.ConnectionDB()
-	rows, err := db.Query("SELECT Vehicle.*, User.firstname, User.lastname FROM Vehicle INNER JOIN User ON Vehicle.created_by = User.id")
+	rows, err := db.Query(`
+	SELECT VEHICLE.id, VEHICLE.register_number, VEHICLE.name, VEHICLE.model, VEHICLE.type, VEHICLE.type_charge, VEHICLE.current_charge, VEHICLE.charge_capacity,
+	VEHICLE.current_distance ,VEHICLE.current_position , VEHICLE.status, VEHICLE.connection_key,VEHICLE.created_at, VEHICLE.created_by ,USER.firstname, USER.lastname 
+	FROM VEHICLE 
+	INNER JOIN USER ON VEHICLE.created_by = USER.id`)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -19,13 +23,14 @@ func GetVehicles(c *fiber.Ctx) error {
 	defer rows.Close()
 
 	var vehicles []model.Vehicle
+	var userFirstname, userLastname string
 	for rows.Next() {
 		var vehicle model.Vehicle
-		var user model.User
 		if err := rows.Scan(&vehicle.ID, &vehicle.Register_number, &vehicle.Name, &vehicle.Model,
-			&vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity, &vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy, &user.Firstname, &user.Lastname); err != nil {
+			&vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity, &vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy, &userFirstname, &userLastname); err != nil {
 			return err
 		}
+		vehicle.CreatedBy = userFirstname + " " + userLastname
 		vehicles = append(vehicles, vehicle)
 	}
 	if err = rows.Err(); err != nil {
@@ -37,16 +42,22 @@ func GetVehicles(c *fiber.Ctx) error {
 func GetVehicleByID(c *fiber.Ctx) error {
 	id := c.Params("vehicleId")
 	db := database.ConnectionDB()
-	row, err := db.Query("SELECT * FROM Vehicle WHERE id = ?", id)
+	row, err := db.Query(`
+	SELECT VEHICLE.id, VEHICLE.register_number, VEHICLE.name, VEHICLE.model, VEHICLE.type, VEHICLE.type_charge, VEHICLE.current_charge, VEHICLE.charge_capacity,
+	VEHICLE.current_distance ,VEHICLE.current_position , VEHICLE.status, VEHICLE.connection_key,VEHICLE.created_at, VEHICLE.created_by ,USER.firstname, USER.lastname 
+	FROM VEHICLE 
+	INNER JOIN USER ON VEHICLE.created_by = USER.id
+	WHERE VEHICLE.id = ?
+	`, id)
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	var vehicle model.Vehicle
+	var userFirstname, userLastname string
 	if row.Next() {
-		if err := row.Scan(&vehicle.ID, &vehicle.Register_number, &vehicle.Name,
-			&vehicle.Model, &vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity,
-			&vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy); err != nil {
+		if err := row.Scan(&vehicle.ID, &vehicle.Register_number, &vehicle.Name, &vehicle.Model,
+			&vehicle.Type, &vehicle.Type_charge, &vehicle.Current_charge, &vehicle.Charge_capacity, &vehicle.Current_distance, &vehicle.Current_position, &vehicle.Status, &vehicle.Connection_key, &vehicle.CreatedAt, &vehicle.CreatedBy, &userFirstname, &userLastname); err != nil {
 			return err
 		}
 	} else {
@@ -57,8 +68,8 @@ func GetVehicleByID(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row error"})
 
 	}
+	vehicle.CreatedBy = userFirstname + " " + userLastname
 	return c.JSON(fiber.Map{"status": "success", "message": "Vehicle found", "data": vehicle})
-
 }
 
 func CreateVehicle(c *fiber.Ctx) error {
@@ -67,13 +78,13 @@ func CreateVehicle(c *fiber.Ctx) error {
 		return err
 	}
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("INSERT INTO Vehicle (register_number, name, model, type, type_charge, current_charge, charge_capacity, current_distance, current_position, status, connection_key, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO VEHICLE (register_number, name, model, type, type_charge, current_charge, charge_capacity, current_distance, current_position, status, connection_key, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(newVehicle.Register_number, newVehicle.Name, newVehicle.Model, newVehicle.Type, newVehicle.Type_charge, newVehicle.Current_charge, newVehicle.Charge_capacity, newVehicle.Current_distance, newVehicle.Current_position, newVehicle.Status, newVehicle.Connection_key, newVehicle.CreatedAt, newVehicle.CreatedBy)
+	_, err = stmt.Exec(newVehicle.Register_number, newVehicle.Name, newVehicle.Model, newVehicle.Type, newVehicle.Type_charge, newVehicle.Current_charge, newVehicle.Charge_capacity, newVehicle.Current_distance, newVehicle.Current_position, newVehicle.Status, newVehicle.Connection_key, newVehicle.CreatedBy)
 	if err != nil {
 		log.Fatal(err)
 		return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not create vehicle"})
@@ -115,7 +126,7 @@ func UpdateVehicle(c *fiber.Ctx) error {
 		params = append(params, vehicleDetails.Type_charge)
 	}
 	if vehicleDetails.Current_charge != "" {
-		updateQuery += "currrent_charge = ?, "
+		updateQuery += "current_charge = ?, "
 		params = append(params, vehicleDetails.Current_charge)
 	}
 	if vehicleDetails.Charge_capacity != "" {
@@ -142,7 +153,7 @@ func UpdateVehicle(c *fiber.Ctx) error {
 	/* Pour supprimer virgule et l'espace à la fin de string */
 	updateQuery = strings.TrimSuffix(updateQuery, ", ")
 
-	stmt, err := db.Prepare("UPDATE Vehicle SET " + updateQuery + " WHERE id = ?")
+	stmt, err := db.Prepare("UPDATE VEHICLE SET " + updateQuery + " WHERE id = ?")
 	params = append(params, id) /* hna nzid appender id */
 	if err != nil {
 		log.Fatal(err)
@@ -164,7 +175,7 @@ func UpdateVehicle(c *fiber.Ctx) error {
 func DeleteVehicle(c *fiber.Ctx) error {
 	id := c.Params("vehicleId")
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("DELETE FROM Vehicle WHERE id = ?")
+	stmt, err := db.Prepare("DELETE FROM VEHICLE WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 		return err
