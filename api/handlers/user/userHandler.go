@@ -13,7 +13,10 @@ import (
 
 func GetUsers(c *fiber.Ctx) error {
 	db := database.ConnectionDB()
-	rows, err := db.Query("SELECT * FROM User")
+	rows, err := db.Query(`
+	SELECT id, firstname, lastname, phone, email, role, status, created_at 
+	FROM USER
+	`)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -24,7 +27,7 @@ func GetUsers(c *fiber.Ctx) error {
 	for rows.Next() {
 		var user model.User
 		if err := rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Phone,
-			&user.Email, &user.Password, &user.Role, &user.Status, &user.CreatedAt); err != nil {
+			&user.Email, &user.Role, &user.Status, &user.CreatedAt); err != nil {
 			return err
 		}
 		users = append(users, user)
@@ -38,7 +41,7 @@ func GetUsers(c *fiber.Ctx) error {
 func GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("userId")
 	db := database.ConnectionDB()
-	row, err := db.Query("SELECT * FROM User WHERE id = ?", id)
+	row, err := db.Query("SELECT id, firstname, lastname, phone, email, role, status FROM USER WHERE id = ?", id)
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -46,7 +49,7 @@ func GetUserByID(c *fiber.Ctx) error {
 	var user model.User
 	if row.Next() {
 		if err := row.Scan(&user.ID, &user.Firstname, &user.Lastname,
-			&user.Email, &user.Password, &user.Phone, &user.Role, &user.Status, &user.CreatedAt); err != nil {
+			&user.Phone, &user.Email, &user.Role, &user.Status); err != nil {
 			return err
 		}
 	} else {
@@ -68,13 +71,13 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 	hashedPassword, _ := HashPassword(newUser.Password)
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("INSERT INTO User (firstname, lastname, email, password, phone, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO USER (firstname, lastname, email, password, phone, role, status) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(newUser.Firstname, newUser.Lastname, newUser.Email, hashedPassword, newUser.Phone, newUser.Role, newUser.Status, newUser.CreatedAt)
+	_, err = stmt.Exec(newUser.Firstname, newUser.Lastname, newUser.Email, hashedPassword, newUser.Phone, newUser.Role, newUser.Status)
 	if err != nil {
 		log.Fatal(err)
 		return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not create user"})
@@ -110,7 +113,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		updateQuery += "password = ?, "
 		params = append(params, userDetails.Password)
 	}
-	if userDetails.Phone != 0 {
+	if userDetails.Phone != "" {
 		updateQuery += "phone = ?, "
 		params = append(params, userDetails.Phone)
 	}
@@ -126,7 +129,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	/* Pour supprimer virgule et l'espace à la fin de string */
 	updateQuery = strings.TrimSuffix(updateQuery, ", ")
 
-	stmt, err := db.Prepare("UPDATE User SET " + updateQuery + " WHERE id = ?")
+	stmt, err := db.Prepare("UPDATE USER SET " + updateQuery + " WHERE id = ?")
 	params = append(params, id) /* hna nzid appender id */
 	if err != nil {
 		log.Fatal(err)
@@ -148,7 +151,7 @@ func UpdateUser(c *fiber.Ctx) error {
 func DeleteUser(c *fiber.Ctx) error {
 	id := c.Params("userId")
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("DELETE FROM User WHERE id = ?")
+	stmt, err := db.Prepare("DELETE FROM USER WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 		return err

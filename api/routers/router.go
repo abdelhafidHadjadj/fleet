@@ -3,6 +3,7 @@ package router
 import (
 	driverRouter "fleet/api/routers/driver"
 	routeRouter "fleet/api/routers/route"
+	routeLogsRouter "fleet/api/routers/route_logs"
 	userRoute "fleet/api/routers/user"
 	vehicleRouter "fleet/api/routers/vehicle"
 
@@ -15,4 +16,6 @@ func SetupRoutes(app *fiber.App) {
 	vehicleRouter.SetupVehicleRoute(api)
 	routeRouter.SetupRouteRouter(api)
 	driverRouter.SetupDriverRoute(api)
+	routeLogsRouter.SetupRouteLogsRouter(api)
+
 }
