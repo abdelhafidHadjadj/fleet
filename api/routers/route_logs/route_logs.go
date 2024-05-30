@@ -9,5 +9,6 @@ import (
 func SetupRouteLogsRouter(router fiber.Router) {
 	route := router.Group("/route_logs")
 	route.Get("/getall", routeLogsHandler.GetRoutesLogs)
+	route.Get("/get_by_vehicle/:vehicle_id", routeLogsHandler.GetRoutesLogsByVehID)
 
 }

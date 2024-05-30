@@ -28,7 +28,7 @@ func Client() string {
 	}()
 
 	// Subscribe to the same topic as your Python server
-	topic := "drone/position/+"
+	topic := "vehicle/position/+"
 
 	// Keep the client running
 	// select {}

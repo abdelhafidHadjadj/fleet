@@ -11,14 +11,14 @@ import (
 	router "fleet/api/routers"
 	"fleet/config"
 	"fleet/database"
+	"fleet/mqtt"
 )
 
 func main() {
 	app := fiber.New()
 
 	// Initialize MQTT client
-	//	data := mqtt.Client()
-
+	mqtt.Client()
 	// Basic route
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")

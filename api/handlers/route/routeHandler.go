@@ -196,7 +196,7 @@ func UpdateRoute(c *fiber.Ctx) error {
 func DeleteRoute(c *fiber.Ctx) error {
 	id := c.Params("routeId")
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("DELETE FROM Route WHERE id = ?")
+	stmt, err := db.Prepare("DELETE FROM ROUTE WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 		return err
