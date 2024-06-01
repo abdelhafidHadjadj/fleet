@@ -12,7 +12,7 @@ type Driver struct {
 	Password          string `json:"password"`
 	Class             string `json:"class"`
 	Status            string `json:"status"`
-	CreatedBy         int    `json:"created_by"`
+	CreatedBy         string `json:"created_by"`
 	CreatedByUserName string `json:"created_by_username"`
 	CreatedAt         string `json:"created_at"`
 	UpdatedAt         string `json:"updated_at"`

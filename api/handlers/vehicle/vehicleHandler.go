@@ -193,3 +193,158 @@ func DeleteVehicle(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Vehicle Deleted successfully"})
 }
+
+func GetDronesNumber(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	row := db.QueryRow(`
+	SELECT COUNT(*)
+	FROM VEHICLE 
+	WHERE type = "drone"
+	`)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Drones count found", "data": count})
+
+}
+
+func GetDrones(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	rows, err := db.Query(`
+		SELECT VEHICLE.id, VEHICLE.register_number, VEHICLE.name, VEHICLE.model, VEHICLE.type, VEHICLE.type_charge, VEHICLE.current_charge, VEHICLE.charge_capacity,
+		VEHICLE.current_distance ,VEHICLE.current_position , VEHICLE.status, VEHICLE.connection_key,VEHICLE.created_at, VEHICLE.created_by ,USER.firstname, USER.lastname 
+		FROM VEHICLE 
+		INNER JOIN USER ON VEHICLE.created_by = USER.id
+		WHERE VEHICLE.type = "drone"
+	`)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+	defer rows.Close()
+
+	var drones []model.Vehicle
+	var userFirstname, userLastname string
+	for rows.Next() {
+		var drone model.Vehicle
+		if err := rows.Scan(&drone.ID, &drone.Register_number, &drone.Name, &drone.Model,
+			&drone.Type, &drone.Type_charge, &drone.Current_charge, &drone.Charge_capacity, &drone.Current_distance, &drone.Current_position, &drone.Status, &drone.Connection_key, &drone.CreatedAt, &drone.CreatedBy, &userFirstname, &userLastname); err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row scan error"})
+		}
+		drone.CreatedBy = userFirstname + " " + userLastname
+		drones = append(drones, drone)
+	}
+	if err = rows.Err(); err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row error"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Drones found", "data": drones})
+}
+
+// without drones
+func GetVehicleNumber(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	row := db.QueryRow(`
+	SELECT COUNT(*)
+	FROM VEHICLE 
+	WHERE type <> "drone"
+	`)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Vehicles count found", "data": count})
+
+}
+
+// without drone
+
+func GetVehicleWithoutDrones(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	rows, err := db.Query(`
+		SELECT VEHICLE.id, VEHICLE.register_number, VEHICLE.name, VEHICLE.model, VEHICLE.type, VEHICLE.type_charge, VEHICLE.current_charge, VEHICLE.charge_capacity,
+		VEHICLE.current_distance ,VEHICLE.current_position , VEHICLE.status, VEHICLE.connection_key,VEHICLE.created_at, VEHICLE.created_by ,USER.firstname, USER.lastname 
+		FROM VEHICLE 
+		INNER JOIN USER ON VEHICLE.created_by = USER.id
+		WHERE VEHICLE.type <> "drone"
+	`)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+	defer rows.Close()
+
+	var drones []model.Vehicle
+	var userFirstname, userLastname string
+	for rows.Next() {
+		var drone model.Vehicle
+		if err := rows.Scan(&drone.ID, &drone.Register_number, &drone.Name, &drone.Model,
+			&drone.Type, &drone.Type_charge, &drone.Current_charge, &drone.Charge_capacity, &drone.Current_distance, &drone.Current_position, &drone.Status, &drone.Connection_key, &drone.CreatedAt, &drone.CreatedBy, &userFirstname, &userLastname); err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row scan error"})
+		}
+		drone.CreatedBy = userFirstname + " " + userLastname
+		drones = append(drones, drone)
+	}
+	if err = rows.Err(); err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row error"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Vehicles found", "data": drones})
+}
+
+func GetVehiclesNumberByStatus(c *fiber.Ctx) error {
+	status := c.Params("status")
+	db := database.ConnectionDB()
+	row := db.QueryRow(`
+	SELECT COUNT(*)
+	FROM VEHICLE 
+	WHERE status = ?
+	`, status)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "vehicle by status count found", "data": count})
+}
+
+func GetVehiclesCreatedByMonth(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	rows, err := db.Query(`
+		SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, COUNT(*) AS count
+		FROM VEHICLE
+		GROUP BY month
+		ORDER BY month
+	`)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+	defer rows.Close()
+
+	var vehiclesByMonth []struct {
+		Month string `json:"month"`
+		Count int    `json:"count"`
+	}
+	for rows.Next() {
+		var record struct {
+			Month string `json:"month"`
+			Count int    `json:"count"`
+		}
+		if err := rows.Scan(&record.Month, &record.Count); err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row scan error"})
+		}
+		vehiclesByMonth = append(vehiclesByMonth, record)
+	}
+	if err = rows.Err(); err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row error"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Vehicles created by month found", "data": vehiclesByMonth})
+}

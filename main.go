@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -12,12 +13,19 @@ import (
 	"fleet/config"
 	"fleet/database"
 	"fleet/mqtt"
+
+	"github.com/gofiber/fiber/v2/middleware/cors"
+
+	"github.com/gofiber/websocket/v2"
 )
 
 func main() {
 	app := fiber.New()
-
-	// Initialize MQTT client
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:8001", // Replace with the actual URL where your Svelte app is hosted
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
+	})) // Initialize MQTT client
 	mqtt.Client()
 	// Basic route
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -34,36 +42,40 @@ func main() {
 	// Setup routes
 	router.SetupRoutes(app)
 	jwt := middlewares.NewAuthMiddleware(config.Secret)
-	app.Get("login", authHandler.Login)
+	app.Post("/login", authHandler.Login)
 	app.Get("/protected", jwt, authHandler.Protected)
 
-	// Start Fiber server
+	// Start Fiber + websockets server
+	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
+		defer c.Close()
+
+		go func() {
+			ticker := time.NewTicker(2 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					message := []byte("Message from server")
+					if err := c.WriteMessage(websocket.TextMessage, message); err != nil {
+						log.Println("Write error:", err)
+						return
+					}
+				}
+			}
+		}()
+
+		for {
+			_, msg, err := c.ReadMessage()
+			if err != nil {
+				log.Println("Read error:", err)
+				break
+			}
+			log.Printf("Received: %s\n", msg)
+		}
+	}))
+
 	if err := app.Listen(":8080"); err != nil {
 		log.Fatalf("Error starting HTTP server: %s", err)
 	}
-	/*
-		// Setup Socket.IO server
-		socketServer, err := socketio.NewServer(nil)
-		if err != nil {
-			log.Fatal("Error establishing new socketio server")
-		}
 
-		socketServer.OnConnect("/", func(so socketio.Conn) error {
-			log.Println("Socket.IO connection established")
-			so.Join("tracking")
-			return nil
-		})
-
-		socketServer.OnEvent("/", "track vehicle", func(so socketio.Conn) {
-			log.Println("Data received: ", data)
-			so.BroadcastToRoom("/", "tracking", "track vehicle", data)
-		})
-
-		http.Handle("/socket.io/", socketServer)
-
-		log.Println("Server is running at :8080")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-			log.Fatalf("Failed to start server: %v", err)
-		}
-	*/
 }
