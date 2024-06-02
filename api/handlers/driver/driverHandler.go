@@ -3,9 +3,7 @@ package driverHandler
 import (
 	"fleet/database"
 	model "fleet/models"
-	"fleet/utils"
 	"log"
-	"strconv"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -82,29 +80,29 @@ func CreateDriver(c *fiber.Ctx) error {
 	}
 
 	// Parse created_by from form data
-	createdBy := c.FormValue("created_by")
-	if createdBy == "" {
-		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "created_by is required"})
-	}
+	//createdBy := c.FormValue("created_by")
+	//if createdBy == "" {
+	//	return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "created_by is required"})
+	//}
 
 	// Convert created_by to an integer
-	createdByInt, err := strconv.Atoi(createdBy)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "created_by must be a valid integer"})
-	}
-	newDriver.CreatedBy = createdByInt
+	//createdByInt, err := strconv.Atoi(createdBy)
+	//if err != nil {
+	//	return c.Status(400).JSON(fiber.Map{"status": "failed", "message": "created_by must be a valid integer"})
+	//}
+	//newDriver.CreatedBy = createdByInt
 
 	// Handle avatar upload
-	avatarPath, err := utils.SaveFile(c, "avatar", "./uploads/avatars")
-	if err != nil && err.Error() != "http: no such file" {
-		log.Printf("Error saving file: %v", err) // Log error
-		return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not upload avatar"})
-	} else if err != nil && err.Error() == "http: no such file" {
-		avatarPath = "" // No file uploaded
-	} else {
-		log.Printf("File saved at: %s", avatarPath) // Log success
-	}
-	newDriver.Avatar = avatarPath
+	//avatarPath, err := utils.SaveFile(c, "avatar", "./uploads/avatars")
+	//if err != nil && err.Error() != "http: no such file" {
+	//	log.Printf("Error saving file: %v", err) // Log error
+	//return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not upload avatar"})
+	//} else if err != nil && err.Error() == "http: no such file" {
+	//	avatarPath = "" // No file uploaded
+	//} else {
+	//	log.Printf("File saved at: %s", avatarPath) // Log success
+	//}
+	//newDriver.Avatar = avatarPath
 
 	// Hash the password
 	hashedPassword, err := HashPassword(newDriver.Password)
@@ -220,4 +218,19 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func GetDriversNumber(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	var count int
+	err := db.QueryRow(`
+		SELECT COUNT(*)
+		FROM DRIVER 
+	`).Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Driver count found", "data": count})
 }

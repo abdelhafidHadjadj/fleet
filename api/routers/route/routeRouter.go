@@ -13,5 +13,6 @@ func SetupRouteRouter(router fiber.Router) {
 	route.Post("/add", routeHandler.CreateRoute)
 	route.Patch("/update/:routeId", routeHandler.UpdateRoute)
 	route.Delete("/delete/:routeId", routeHandler.DeleteRoute)
-
+	route.Get("/route_number", routeHandler.GetRouteNumber)
+	route.Get("/route_number_status/:status", routeHandler.GetRouteNumberByStatus)
 }

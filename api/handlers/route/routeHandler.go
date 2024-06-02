@@ -196,7 +196,7 @@ func UpdateRoute(c *fiber.Ctx) error {
 func DeleteRoute(c *fiber.Ctx) error {
 	id := c.Params("routeId")
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("DELETE FROM Route WHERE id = ?")
+	stmt, err := db.Prepare("DELETE FROM ROUTE WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 		return err
@@ -212,4 +212,81 @@ func DeleteRoute(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "failed", "message": "Route not found"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Route Deleted successfully"})
+}
+
+func GetRouteNumber(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	row := db.QueryRow(`
+	SELECT COUNT(*)
+	FROM ROUTE 
+	`)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Route count found", "data": count})
+
+}
+
+func GetRouteNumberByStatus(c *fiber.Ctx) error {
+	status := c.Params("status")
+	db := database.ConnectionDB()
+	row := db.QueryRow(`
+	SELECT COUNT(*)
+	FROM ROUTE
+	WHERE status = ?
+	`, status)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Route by status count found", "data": count})
+}
+
+func GetRoutesByStatus(c *fiber.Ctx) error {
+	status := c.Params("status")
+	db := database.ConnectionDB()
+	rows, err := db.Query(`
+	SELECT ROUTE.id, ROUTE.status, ROUTE.departure_date, ROUTE.arrival_date, 
+	ROUTE.lat_start, ROUTE.lng_start, ROUTE.lat_end, ROUTE.lng_end, ROUTE.departure_city, ROUTE.arrival_city,
+	ROUTE.driver_id, DRIVER.firstname, DRIVER.lastname, ROUTE.vehicle_id, VEHICLE.register_number, VEHICLE.name, VEHICLE.model, ROUTE.created_at, USER.firstname, USER.lastname 	
+	FROM ROUTE
+	LEFT JOIN 
+    DRIVER ON ROUTE.driver_id = DRIVER.id
+	LEFT JOIN 
+    VEHICLE ON ROUTE.vehicle_id = VEHICLE.id
+	LEFT JOIN 
+	USER ON ROUTE.created_by = USER.id
+	WHERE ROUTE.status = ?
+	`, status)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	defer rows.Close()
+
+	var routes []model.Route
+	var driverFirstName, driverLastName, vehicleName, vehicleModel, userFirstName, userLastName string
+
+	for rows.Next() {
+		var route model.Route
+		if err := rows.Scan(&route.ID, &route.Status, &route.Departue_date, &route.Arrival_date, &route.Lat_start, &route.Lng_start, &route.Lat_end, &route.Lng_end, &route.Departure_city, &route.Arrival_city,
+			&route.DriverID, &driverFirstName, &driverLastName, &route.VehicleID, &route.VehicleRegisterNumber, &vehicleName, &vehicleModel, &route.CreatedAt, &userFirstName, &userLastName); err != nil {
+			return err
+		}
+		route.DriverName = driverFirstName + " " + driverLastName
+		route.VehicleName = vehicleName + " (" + vehicleModel + ")"
+		route.CreatedBy = userFirstName + " " + userLastName
+		routes = append(routes, route)
+	}
+	if err = rows.Err(); err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "failed", "message": "No routes present", "data": nil})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "routes found", "data": routes})
 }

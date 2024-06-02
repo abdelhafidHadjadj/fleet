@@ -3,21 +3,15 @@ package mqtt
 import (
 	"encoding/json"
 	"fleet/database"
+	model "fleet/models"
 	"fmt"
 	"log"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-type PositionLogs struct {
-	Drone_id string  `json: "drone_id"`
-	Lat      float64 `json: "lat"`
-	Long     float64 `json: "long"`
-	Time     string  `json: "time"`
-}
-
 func Sub(client mqtt.Client, topic string) (string, error) {
-	var position PositionLogs
+	var position model.RouteLogs
 	messageHandler := func(client mqtt.Client, message mqtt.Message) {
 		fmt.Printf("Received message on topic %s: %s\n", message.Topic(), message.Payload())
 		err := json.Unmarshal(message.Payload(), &position)
@@ -25,7 +19,7 @@ func Sub(client mqtt.Client, topic string) (string, error) {
 			fmt.Println("Error parsing message payload : ", err)
 			return
 		}
-		logToDb(position.Drone_id, position.Lat, position.Long, position.Time)
+		logToDb(position.VehicleID, position.Lat, position.Lng)
 	}
 	token := client.Subscribe(topic, 1, messageHandler)
 	token.Wait()
@@ -37,17 +31,16 @@ func Sub(client mqtt.Client, topic string) (string, error) {
 	return string(jsonData), nil
 }
 
-func logToDb(vehicle_id string, lat float64, long float64, time string) {
+func logToDb(vehicle_id string, lat string, lng string) {
 	fmt.Printf("id: %s", vehicle_id)
-	fmt.Printf("lat: %f", lat)
-	fmt.Printf("long: %f", long)
-	fmt.Printf("time: %s", time)
+	fmt.Printf("lat: %s", lat)
+	fmt.Printf("lng: %s", lng)
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("INSERT INTO Route_logs (vehicle_id, lat, lng, datetime) VALUES (?,?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO ROUTE_LOGS (vehicle_id, lat, lng) VALUES (?,?,?)")
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = stmt.Exec(vehicle_id, lat, long, time)
+	_, err = stmt.Exec(vehicle_id, lat, lng)
 	if err != nil {
 		log.Fatal(err)
 	}

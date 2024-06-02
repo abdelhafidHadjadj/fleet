@@ -4,6 +4,8 @@ import (
 	config "fleet/config"
 	"fleet/database"
 	models "fleet/models"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,6 +21,8 @@ func Login(c *fiber.Ctx) error {
 			"error": "Failed to parse request body: " + err.Error(),
 		})
 	}
+	var req models.LoginRequest
+	log.Printf("Received login request: %+v\n", req)
 
 	// Connect to the database
 	db := database.ConnectionDB()
@@ -66,13 +70,13 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	if loginRequest.LoginType == "user" {
-		claims["ID"] = user.ID
+		claims["id"] = user.ID
 		claims["firstname"] = user.Firstname
 		claims["lastname"] = user.Lastname
 		claims["email"] = user.Email
 		claims["role"] = user.Role
 	} else if loginRequest.LoginType == "driver" {
-		claims["ID"] = driver.ID
+		claims["id"] = driver.ID
 		claims["firstname"] = driver.Firstname
 		claims["lastname"] = driver.Lastname
 		claims["email"] = driver.Email
@@ -103,6 +107,17 @@ func Protected(c *fiber.Ctx) error {
 	claims := user.Claims.(jwt.MapClaims)
 
 	// Get common claims
+	var id string
+	switch v := claims["id"].(type) {
+	case float64:
+		id = fmt.Sprintf("%.0f", v)
+	case string:
+		id = v
+	default:
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid ID format",
+		})
+	}
 	email := claims["email"].(string)
 	role := claims["role"].(string)
 
@@ -126,7 +141,11 @@ func Protected(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.SendString(responseMessage)
+	return c.JSON(fiber.Map{
+		"id":   id,
+		"msg":  responseMessage,
+		"role": role,
+	})
 }
 
 func HashPassword(password string) (string, error) {

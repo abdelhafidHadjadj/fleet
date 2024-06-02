@@ -181,3 +181,47 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+func GetOperatorNumber(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	var count int
+
+	err := db.QueryRow(`
+		SELECT COUNT(*)
+		FROM USER 
+		WHERE role = ?
+	`, "operator").Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Operator count found", "data": count})
+}
+
+func GetOperators(c *fiber.Ctx) error {
+	db := database.ConnectionDB()
+	rows, err := db.Query(`
+		SELECT id, firstname, lastname, phone, email, status, created_at 
+		FROM USER
+		WHERE role = ?
+	`, "operator")
+	if err != nil {
+		log.Fatal(err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+	defer rows.Close()
+
+	var operators []model.User
+	for rows.Next() {
+		var operator model.User
+		if err := rows.Scan(&operator.ID, &operator.Firstname, &operator.Lastname, &operator.Phone,
+			&operator.Email, &operator.Status, &operator.CreatedAt); err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Row scan error"})
+		}
+		operators = append(operators, operator)
+	}
+	if err = rows.Err(); err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "failed", "message": "No operators present", "data": nil})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Operators found", "data": operators})
+}

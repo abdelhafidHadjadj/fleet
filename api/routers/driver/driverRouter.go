@@ -13,4 +13,5 @@ func SetupDriverRoute(router fiber.Router) {
 	driver.Post("/add", driverHandler.CreateDriver)
 	driver.Patch("/update/:driverId", driverHandler.UpdateDriver)
 	driver.Delete("/delete/:driverId", driverHandler.DeleteDriver)
+	driver.Get("/driver_number", driverHandler.GetDriversNumber)
 }

@@ -13,4 +13,6 @@ func SetupUserRoute(router fiber.Router) {
 	user.Post("/add", userHandler.CreateUser)
 	user.Patch("/update/:userId", userHandler.UpdateUser)
 	user.Delete("/delete/:userId", userHandler.DeleteUser)
+	user.Get("/operators", userHandler.GetOperators)
+	user.Get("/operators_number", userHandler.GetOperatorNumber)
 }
