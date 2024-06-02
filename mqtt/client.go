@@ -9,12 +9,14 @@ import (
 	mqttlib "github.com/eclipse/paho.mqtt.golang"
 )
 
-func Client() string {
+var client mqttlib.Client
+
+func SetupClient(messageHandler func(topic string, payload []byte)) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	opts := mqttlib.NewClientOptions().AddBroker("mqtt.eclipseprojects.io:1883")
-	client := mqttlib.NewClient(opts)
+	opts := mqttlib.NewClientOptions().AddBroker("tcp://mqtt.eclipseprojects.io:1883").SetClientID("fleet_client")
+	client = mqttlib.NewClient(opts)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
@@ -27,11 +29,13 @@ func Client() string {
 		}
 	}()
 
-	// Subscribe to the same topic as your Python server
+	// Subscribe to the topic
 	topic := "vehicle/position/+"
+	client.Subscribe(topic, 1, func(client mqttlib.Client, msg mqttlib.Message) {
+		messageHandler(msg.Topic(), msg.Payload())
+	})
+}
 
-	// Keep the client running
-	// select {}
-	data, _ := Sub(client, topic)
-	return data
+func Client() mqttlib.Client {
+	return client
 }
