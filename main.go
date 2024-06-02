@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -47,31 +46,7 @@ func main() {
 
 	// Start Fiber + websockets server
 	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-		defer c.Close()
-
-		go func() {
-			ticker := time.NewTicker(2 * time.Second)
-			defer ticker.Stop()
-			for {
-				select {
-				case <-ticker.C:
-					message := []byte("Message from server")
-					if err := c.WriteMessage(websocket.TextMessage, message); err != nil {
-						log.Println("Write error:", err)
-						return
-					}
-				}
-			}
-		}()
-
-		for {
-			_, msg, err := c.ReadMessage()
-			if err != nil {
-				log.Println("Read error:", err)
-				break
-			}
-			log.Printf("Received: %s\n", msg)
-		}
+		mqtt.Client()
 	}))
 
 	if err := app.Listen(":8080"); err != nil {
