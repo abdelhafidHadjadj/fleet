@@ -98,14 +98,16 @@ func CreateRoute(c *fiber.Ctx) error {
 	if err := c.BodyParser(&newRoute); err != nil {
 		return err
 	}
+	log.Printf("Inserting route with values: %#v", newRoute)
+
 	db := database.ConnectionDB()
-	stmt, err := db.Prepare("INSERT INTO ROUTE (status, departure_date, arrival_date, lat_start, lng_start, lat_end, lng_end, departure_city, arrival_city, driver_id, vehicle_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO ROUTE ( departure_date, arrival_date, lat_start, lng_start, lat_end, lng_end, departure_city, arrival_city, status, driver_id, vehicle_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(newRoute.Status, newRoute.Departue_date, newRoute.Arrival_date, newRoute.Lat_start, newRoute.Lng_start, newRoute.Lat_end, newRoute.Lng_end, newRoute.Departure_city, newRoute.Arrival_city, newRoute.DriverID, newRoute.VehicleID, newRoute.CreatedBy)
+	_, err = stmt.Exec(newRoute.Departue_date, newRoute.Arrival_date, newRoute.Lat_start, newRoute.Lng_start, newRoute.Lat_end, newRoute.Lng_end, newRoute.Departure_city, newRoute.Arrival_city, newRoute.Status, newRoute.DriverID, newRoute.VehicleID, newRoute.CreatedBy)
 	if err != nil {
 		log.Fatal(err)
 		return c.Status(500).JSON(fiber.Map{"status": "failed", "message": "Could not create route"})
