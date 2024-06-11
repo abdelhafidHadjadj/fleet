@@ -2,12 +2,10 @@
 package mqtt
 
 import (
-
 	"fleet/database"
 
 	"fmt"
 	"log"
-
 )
 
 func logToDb(vehicleID, lat, lng string) {

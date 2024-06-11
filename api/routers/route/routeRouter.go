@@ -15,4 +15,5 @@ func SetupRouteRouter(router fiber.Router) {
 	route.Delete("/delete/:routeId", routeHandler.DeleteRoute)
 	route.Get("/route_number", routeHandler.GetRouteNumber)
 	route.Get("/route_number_status/:status", routeHandler.GetRouteNumberByStatus)
+	route.Get("/my_routes/:driverId", routeHandler.GetMyRoutes)
 }

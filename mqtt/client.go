@@ -2,6 +2,7 @@
 package mqtt
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -33,6 +34,24 @@ func SetupClient(messageHandler func(topic string, payload []byte)) {
 	topic := "vehicle/position/+"
 	client.Subscribe(topic, 1, func(client mqttlib.Client, msg mqttlib.Message) {
 		messageHandler(msg.Topic(), msg.Payload())
+
+		type Position struct {
+			VehicleID string `json:"vehicle_id"`
+			Lat       string `json:"lat"`
+			Lng       string `json:"lng"`
+		}
+
+		// Parse the JSON payload
+		var position Position
+		err := json.Unmarshal(msg.Payload(), &position)
+		if err != nil {
+			fmt.Printf("Error parsing JSON payload: %v\n", err)
+			return
+		}
+
+		// Call logToDb
+		logToDb(position.VehicleID, position.Lat, position.Lng)
+
 	})
 }
 
